@@ -1,0 +1,40 @@
+type User {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    email: String!
+    street: String
+    city: String
+    role: Role!
+}
+extend type Query {
+    getUsers: [User]!
+    getUserById(id: String): User
+}
+extend type Mutation {
+    addUser(userInput: CreateUserInput!): User!
+    updateUser(userInput: UpdateUserInput!): User!
+    deleteUser(userInput: DeleteUserInput!): Boolean
+}
+
+input CreateUserInput {
+    firstName: String!
+    lastName: String!
+    email: String!
+    street: String
+    city: String
+    roleId: ID!
+}
+
+input UpdateUserInput {
+    id: ID!
+    firstName: String
+    lastName: String
+    email: String
+    street: String
+    city: String
+}
+
+input DeleteUserInput {
+    id: ID!
+}
