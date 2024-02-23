@@ -1,0 +1,43 @@
+type Campaign {
+  id: ID!
+  title: String!
+  description: String
+  date: String!
+  location: String!
+  host: User!
+  attendees: [User!]!
+}
+
+extend type Query {
+  getCampaigns: [Campaign]!
+  getCampaignById(id: ID!): Campaign
+}
+
+extend type Mutation {
+  createCampaign(input: CreateCampaignInput!): Campaign!
+  updateCampaign(input: UpdateCampaignInput!): Campaign!
+  deleteCampaign(input: DeleteCampaignInput!): Boolean
+}
+
+input CreateCampaignInput {
+  title: String!
+  description: String
+  date: String!
+  location: String!
+  hostId: ID!
+  attendeeIds: [ID!]!
+}
+
+input UpdateCampaignInput {
+  id: ID!
+  title: String!
+  description: String
+  date: String!
+  location: String!
+  hostId: ID!
+  attendeeIds: [ID!]!
+}
+
+input DeleteCampaignInput {
+  id: ID!
+}

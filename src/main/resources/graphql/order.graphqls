@@ -1,0 +1,28 @@
+type Order {
+  id: ID!
+  user: User!
+  orderDate: String!
+  totalAmount: Float!
+  orderDetails: [OrderDetail!]!
+}
+
+extend type Query {
+  getOrders: [Order]!
+  getOrderById(id: ID!): Order
+}
+
+extend type Mutation {
+  createOrder(input: CreateOrderInput!): Order!
+  deleteOrder(input: DeleteOrderInput!): Boolean
+}
+
+input CreateOrderInput {
+  userId: ID!
+  orderDate: String!
+  totalAmount: Float!
+  orderDetails: [CreateOrderDetailInput!]!
+}
+
+input DeleteOrderInput {
+  id: ID!
+}

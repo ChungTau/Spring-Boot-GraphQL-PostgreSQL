@@ -1,0 +1,35 @@
+type Review {
+  id: ID!
+  user: User!
+  product: Product!
+  rating: Int!
+  comment: String
+}
+
+extend type Query {
+  getReviews: [Review]!
+  getReviewById(id: ID!): Review
+}
+
+extend type Mutation {
+  createReview(input: CreateReviewInput!): Review!
+  updateReview(input: UpdateReviewInput!): Review!
+  deleteReview(input: DeleteReviewInput!): Boolean
+}
+
+input CreateReviewInput {
+  userId: ID!
+  productId: ID!
+  rating: Int!
+  comment: String
+}
+
+input UpdateReviewInput {
+  id: ID!
+  rating: Int!
+  comment: String
+}
+
+input DeleteReviewInput {
+  id: ID!
+}

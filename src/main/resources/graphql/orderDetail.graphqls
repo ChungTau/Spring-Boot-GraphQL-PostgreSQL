@@ -1,0 +1,27 @@
+type OrderDetail {
+  order: Order!
+  product: Product!
+  quantity: Int!
+  price: Float!
+}
+
+extend type Query {
+  getOrderDetails: [OrderDetail]!
+  getOrderDetailById(id: ID!): OrderDetail
+}
+
+extend type Mutation {
+  createOrderDetail(input: CreateOrderDetailInput!): OrderDetail!
+  deleteOrderDetail(input: DeleteOrderDetailInput!): Boolean
+}
+
+input CreateOrderDetailInput {
+  orderId: ID!
+  productId: ID!
+  quantity: Int!
+  price: Float!
+}
+
+input DeleteOrderDetailInput {
+  id: ID!
+}

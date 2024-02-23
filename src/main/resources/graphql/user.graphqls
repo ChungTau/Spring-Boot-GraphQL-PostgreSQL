@@ -12,9 +12,9 @@ extend type Query {
     getUserById(id: String): User
 }
 extend type Mutation {
-    addUser(userInput: CreateUserInput!): User!
-    updateUser(userInput: UpdateUserInput!): User!
-    deleteUser(userInput: DeleteUserInput!): Boolean
+    addUser(input: CreateUserInput!): User!
+    updateUser(input: UpdateUserInput!): User!
+    deleteUser(input: DeleteUserInput!): Boolean
 }
 
 input CreateUserInput {

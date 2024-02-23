@@ -1,0 +1,39 @@
+type Product {
+    id: ID!
+    name: String!
+    description: String!
+    price: Float!
+    category: Category!
+    reviews: [Review]!
+    orderDetails: [OrderDetail]!
+}
+
+extend type Query {
+    getProducts: [Product]!
+    getProductById: Product
+}
+
+extend type Mutation {
+    addProduct(input: CreateProductInput!): Product!
+    updateProduct(input: UpdateProductInput!): Product!
+    deleteProduct(input: DeleteProductInput!): Boolean
+}
+
+input CreateProductInput {
+    name: String!
+    description: String!
+    price: Float!
+    categoryId: Int!
+}
+
+input UpdateProductInput {
+    id: ID!
+    name: String!
+    description: String!
+    price: Float!
+    categoryId: Int!
+}
+
+input DeleteProductInput {
+    id: ID!
+}

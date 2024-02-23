@@ -9,9 +9,9 @@ type Query {
 }
 
 type Mutation {
-    addRole(roleInput: CreateRoleInput!): Role!
-    updateRole(roleInput: UpdateRoleInput!): Role!
-    deleteRole(roleInput: DeleteRoleInput!): Boolean
+    addRole(input: CreateRoleInput!): Role!
+    updateRole(input: UpdateRoleInput!): Role!
+    deleteRole(input: DeleteRoleInput!): Boolean
 }
 
 input CreateRoleInput {
