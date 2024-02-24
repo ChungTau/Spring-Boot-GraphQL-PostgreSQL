@@ -9,6 +9,7 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 
+import com.chungtau.demo.exception.EntityRuntimeException;
 import com.chungtau.demo.model.role.Role;
 import com.chungtau.demo.model.user.CreateUserInput;
 import com.chungtau.demo.model.user.DeleteUserInput;
@@ -27,8 +28,13 @@ public class UserController {
 
     @QueryMapping
     public Optional<User> getUserById(@Argument Long id) {
-        return userRepository.findById(id);
+        if (id != null) {
+            return userRepository.findById(id);
+        } else {
+            return Optional.empty();
+        }
     }
+    
 
     @QueryMapping
     public Iterable<User> getUsers() {
@@ -55,42 +61,55 @@ public class UserController {
         user.setEmail(input.getEmail());
         user.setCity(input.getCity());
         user.setStreet(input.getStreet());
-
-        Optional<Role> optionalRole = roleRepository.findById(input.getRoleId());
-
-        if (optionalRole.isPresent()) {
-            user.setRole(optionalRole.get());
-            return userRepository.save(user);
+    
+        Integer roleId = input.getRoleId();
+        if (roleId != null) {
+            Optional<Role> optionalRole = roleRepository.findById(roleId);
+            if (optionalRole.isPresent()) {
+                user.setRole(optionalRole.get());
+                return userRepository.save(user);
+            } else {
+                throw EntityRuntimeException.notFound(Role.class.getName(), roleId);
+            }
         } else {
-            throw new IllegalArgumentException("Role not found for id: " + input.getRoleId());
+            throw EntityRuntimeException.entityIdNotNull(Role.class.getName());
         }
     }
+    
 
     @MutationMapping
     public User updateUser(@Argument UpdateUserInput input) {
-        Optional<User> optionalUser = userRepository.findById(input.getId());
-        
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            user.setLastName(input.getLastName());
-            user.setFirstName(input.getFirstName());
-            user.setEmail(input.getEmail());
-            user.setCity(input.getCity());
-            user.setStreet(input.getStreet());
-            return userRepository.save(user);
-        } else {
-            throw new IllegalArgumentException("User not found for id: " + input.getId());
+        Long userId = input.getId();
+        if (userId != null) {
+            Optional<User> optionalUser = userRepository.findById(userId);
+            if (optionalUser.isPresent()) {
+                User user = optionalUser.get();
+                user.setLastName(input.getLastName());
+                user.setFirstName(input.getFirstName());
+                user.setEmail(input.getEmail());
+                user.setCity(input.getCity());
+                user.setStreet(input.getStreet());
+                return userRepository.save(user);
+            } else {
+                throw EntityRuntimeException.notFound(User.class.getName(), userId);
+            }
+        }else {
+            throw EntityRuntimeException.entityIdNotNull(User.class.getName());
         }
     }
 
     @MutationMapping
     public boolean deleteUser(@Argument DeleteUserInput input) {
-        if (userRepository.existsById(input.getId())) {
-            userRepository.deleteById(input.getId());
-            return true;
-        } else {
-            throw new IllegalArgumentException("User not found for id: " + input.getId());
+        Long userId = input.getId();
+        if (userId != null) {
+            if (userRepository.existsById(userId)) {
+                userRepository.deleteById(userId);
+                return true;
+            } else {
+                throw EntityRuntimeException.notFound(User.class.getName(), userId);
+            }
+        }else {
+            throw EntityRuntimeException.entityIdNotNull(User.class.getName());
         }
     }
-
 }

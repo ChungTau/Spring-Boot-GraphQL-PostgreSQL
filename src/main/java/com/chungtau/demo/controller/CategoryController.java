@@ -10,6 +10,7 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 
+import com.chungtau.demo.exception.EntityRuntimeException;
 import com.chungtau.demo.model.category.Category;
 import com.chungtau.demo.model.category.CreateCategoryInput;
 import com.chungtau.demo.model.category.DeleteCategoryInput;
@@ -24,7 +25,11 @@ public class CategoryController {
 
     @QueryMapping
     public Optional<Category> getCategoryById(@Argument Integer id) {
-        return categoryRepository.findById(id);
+        if(id != null){
+            return categoryRepository.findById(id);
+        }else{
+            return Optional.empty();
+        }
     }
 
     @QueryMapping
@@ -47,26 +52,38 @@ public class CategoryController {
 
     @MutationMapping
     public Category updateCategory(@Argument UpdateCategoryInput input) {
-        Optional<Category> optionalCategory = categoryRepository.findById(input.getId());
-        
-        if (optionalCategory.isPresent()) {
-            Category category = optionalCategory.get();
-            category.setName(input.getName());
-            category.setDescription(input.getDescription());
+        Integer categoryId = input.getId();
 
-            return categoryRepository.save(category);
-        } else {
-            throw new IllegalArgumentException("Category not found for id: " + input.getId());
+        if(categoryId != null){
+            Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
+        
+            if (optionalCategory.isPresent()) {
+                Category category = optionalCategory.get();
+                category.setName(input.getName());
+                category.setDescription(input.getDescription());
+
+                return categoryRepository.save(category);
+            } else {
+                throw EntityRuntimeException.notFound(Category.class.getName(), categoryId);
+            }
+        }else{
+            throw EntityRuntimeException.entityIdNotNull(Category.class.getName());
         }
     }
 
     @MutationMapping
     public boolean deleteCategory(@Argument DeleteCategoryInput input) {
-        if (categoryRepository.existsById(input.getId())) {
-            categoryRepository.deleteById(input.getId());
-            return true;
-        } else {
-            throw new IllegalArgumentException("Category not found for id: " + input.getId());
+        Integer categoryId = input.getId();
+
+        if(categoryId != null){
+            if (categoryRepository.existsById(categoryId)) {
+                categoryRepository.deleteById(categoryId);
+                return true;
+            } else {
+                throw EntityRuntimeException.notFound(Category.class.getName(), categoryId);
+            }
+        }else{
+            throw EntityRuntimeException.entityIdNotNull(Category.class.getName());
         }
     }
 }

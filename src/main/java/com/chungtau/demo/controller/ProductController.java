@@ -10,6 +10,7 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 
+import com.chungtau.demo.exception.EntityRuntimeException;
 import com.chungtau.demo.model.category.Category;
 import com.chungtau.demo.model.orderDetail.OrderDetail;
 import com.chungtau.demo.model.product.CreateProductInput;
@@ -30,7 +31,11 @@ public class ProductController {
 
     @QueryMapping
     public Optional<Product> getProductById(@Argument Long id) {
-        return productRepository.findById(id);
+        if(id != null){
+            return productRepository.findById(id);
+        }else{
+            return Optional.empty();
+        }
     }
 
     @QueryMapping
@@ -67,44 +72,66 @@ public class ProductController {
         product.setDescription(input.getDescription());
         product.setPrice(input.getPrice());
 
-        Optional<Category> optionalCategory = categoryRepository.findById(input.getCategoryId());
-        if (optionalCategory.isPresent()) {
-            product.setCategory(optionalCategory.get());
-            return productRepository.save(product);
-        } else {
-            throw new IllegalArgumentException("Category not found for id: " + input.getCategoryId());
+        Integer categoryId = input.getCategoryId();
+        if(categoryId != null){
+            Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
+            if (optionalCategory.isPresent()) {
+                product.setCategory(optionalCategory.get());
+                return productRepository.save(product);
+            } else {
+                throw EntityRuntimeException.notFound(Category.class.getName(), categoryId);
+            }
+        }else{
+            throw EntityRuntimeException.entityIdNotNull(Category.class.getName());
         }
     }
 
     @MutationMapping
     public Product updateProduct(@Argument UpdateProductInput input) {
-        Optional<Product> optionalProduct = productRepository.findById(input.getId());
-        
-        if (optionalProduct.isPresent()) {
-            Product product = optionalProduct.get();
-            product.setName(input.getName());
-            product.setDescription(input.getDescription());
-            product.setPrice(input.getPrice());
-            Optional<Category> optionalCategory = categoryRepository.findById(input.getCategoryId());
-            if(optionalCategory.isPresent()){
-                product.setCategory(optionalCategory.get());
-            }else{
-                throw new IllegalArgumentException("Category not found for id: " + input.getCategoryId());
-            }
+        Long productId = input.getId();
 
-            return productRepository.save(product);
-        } else {
-            throw new IllegalArgumentException("Product not found for id: " + input.getId());
-        }
+        if(productId != null){
+            Optional<Product> optionalProduct = productRepository.findById(productId);
+        
+            if (optionalProduct.isPresent()) {
+                Product product = optionalProduct.get();
+                product.setName(input.getName());
+                product.setDescription(input.getDescription());
+                product.setPrice(input.getPrice());
+                
+                Integer categoryId = input.getCategoryId();
+                if(categoryId != null){
+                    Optional<Category> optionalCategory = categoryRepository.findById(categoryId);
+                    if(optionalCategory.isPresent()){
+                        product.setCategory(optionalCategory.get());
+                    }else{
+                        throw EntityRuntimeException.notFound(Category.class.getName(), categoryId);
+                    }
+                }else{
+                    throw EntityRuntimeException.entityIdNotNull(Category.class.getName());
+                }
+                return productRepository.save(product);
+            } else {
+                throw EntityRuntimeException.notFound(Product.class.getName(), productId);
+            }
+        }else{
+            throw EntityRuntimeException.entityIdNotNull(Product.class.getName());
+        }  
     }
 
     @MutationMapping
     public boolean deleteProduct(@Argument DeleteProductInput input) {
-        if (productRepository.existsById(input.getId())) {
-            productRepository.deleteById(input.getId());
-            return true;
-        } else {
-            throw new IllegalArgumentException("Product not found for id: " + input.getId());
+        Long productId = input.getId();
+
+        if(productId != null){
+            if (productRepository.existsById(productId)) {
+                productRepository.deleteById(productId);
+                return true;
+            } else {
+                throw EntityRuntimeException.notFound(Product.class.getName(), productId);
+            }
+        }else{
+            throw EntityRuntimeException.entityIdNotNull(Product.class.getName());
         }
     }
 }

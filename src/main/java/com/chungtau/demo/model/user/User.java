@@ -34,10 +34,10 @@ public class User {
     @Column(nullable = false)
     private String email;
 
-    @Column
+    @Column(nullable = true)
     private String street;
 
-    @Column
+    @Column(nullable = true)
     private String city;
     
     @ManyToOne

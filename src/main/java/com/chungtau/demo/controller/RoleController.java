@@ -8,6 +8,7 @@ import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 
+import com.chungtau.demo.exception.EntityRuntimeException;
 import com.chungtau.demo.model.role.CreateRoleInput;
 import com.chungtau.demo.model.role.DeleteRoleInput;
 import com.chungtau.demo.model.role.Role;
@@ -22,7 +23,11 @@ public class RoleController {
 
     @QueryMapping
     public Optional<Role> getRoleById(@Argument Integer id){
-        return roleRepository.findById(id);
+        if(id != null){
+            return roleRepository.findById(id);
+        }else{
+            return Optional.empty();
+        }
     }
 
     @QueryMapping
@@ -39,24 +44,34 @@ public class RoleController {
 
     @MutationMapping
     public Role updateRole(@Argument UpdateRoleInput input) {
-        Optional<Role> optionalRole = roleRepository.findById(input.getId());
-        if (optionalRole.isPresent()) {
-            Role role = optionalRole.get();
-            role.setName(input.getName());
-            return roleRepository.save(role);
-        } else {
-            throw new RuntimeException("Role not found with id: " + input.getId());
+        Integer roleId = input.getId();
+        if(roleId != null){
+            Optional<Role> optionalRole = roleRepository.findById(roleId);
+            if (optionalRole.isPresent()) {
+                Role role = optionalRole.get();
+                role.setName(input.getName());
+                return roleRepository.save(role);
+            } else {
+                throw EntityRuntimeException.notFound(Role.class.getName(), roleId);
+            }
+        }else{
+            throw EntityRuntimeException.entityIdNotNull(Role.class.getName());
         }
     }
 
     @MutationMapping
     public boolean deleteRole(@Argument DeleteRoleInput input) {
-        Optional<Role> optionalRole = roleRepository.findById(input.getId());
-        if (optionalRole.isPresent()) {
-            roleRepository.deleteById(input.getId());
-            return true;
-        } else {
-            throw new RuntimeException("Role not found with id: " + input.getId());
+        Integer roleId = input.getId();
+        if(roleId != null){
+            Optional<Role> optionalRole = roleRepository.findById(roleId);
+            if (optionalRole.isPresent()) {
+                roleRepository.deleteById(roleId);
+                return true;
+            } else {
+                throw EntityRuntimeException.notFound(Role.class.getName(), roleId);
+            }
+        }else {
+            throw EntityRuntimeException.entityIdNotNull(Role.class.getName());
         }
     }
 }

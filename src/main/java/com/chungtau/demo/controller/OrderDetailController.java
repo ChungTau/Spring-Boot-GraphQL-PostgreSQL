@@ -9,6 +9,7 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 
+import com.chungtau.demo.exception.EntityRuntimeException;
 import com.chungtau.demo.model.order.Order;
 import com.chungtau.demo.model.orderDetail.CreateOrderDetailInput;
 import com.chungtau.demo.model.orderDetail.DeleteOrderDetailInput;
@@ -31,7 +32,11 @@ public class OrderDetailController {
 
     @QueryMapping
     public Optional<OrderDetail> getOrderDetailById(@Argument Long id) {
-        return orderDetailRepository.findById(id);
+        if(id != null){
+            return orderDetailRepository.findById(id);
+        }else{
+            return Optional.empty();
+        }
     }
 
     @QueryMapping
@@ -68,30 +73,48 @@ public class OrderDetailController {
         orderDetail.setPrice(input.getPrice());
         orderDetail.setQuantity(input.getQuantity());
 
-        Optional<Order> optionalOrder = orderRepository.findById(input.getOrderId());
-        if (optionalOrder.isPresent()) {
-            orderDetail.setOrder(optionalOrder.get());
-        } else {
-            throw new IllegalArgumentException("Order not found for id: " + input.getOrderId());
+        Long orderId = input.getOrderId();
+
+        if(orderId != null){
+            Optional<Order> optionalOrder = orderRepository.findById(orderId);
+            if (optionalOrder.isPresent()) {
+                orderDetail.setOrder(optionalOrder.get());
+            } else {
+                throw EntityRuntimeException.notFound(Order.class.getName(), orderId);
+            }
+        }else{
+            throw EntityRuntimeException.entityIdNotNull(Order.class.getName());
         }
 
-        Optional<Product> optionalProduct = productRepository.findById(input.getProductId());
+        Long productId = input.getProductId();
 
-        if (optionalProduct.isPresent()) {
-            orderDetail.setProduct(optionalProduct.get());
-            return orderDetailRepository.save(orderDetail);
-        } else {
-            throw new IllegalArgumentException("Product not found for id: " + input.getProductId());
+        if(productId != null){
+            Optional<Product> optionalProduct = productRepository.findById(productId);
+
+            if (optionalProduct.isPresent()) {
+                orderDetail.setProduct(optionalProduct.get());
+                return orderDetailRepository.save(orderDetail);
+            } else {
+                throw EntityRuntimeException.notFound(Product.class.getName(), productId);
+            }
+        }else{
+            throw EntityRuntimeException.entityIdNotNull(Product.class.getName());
         }
     }
 
     @MutationMapping
     public boolean deleteOrderDetail(@Argument DeleteOrderDetailInput input) {
-        if (orderDetailRepository.existsById(input.getId())) {
-            orderDetailRepository.deleteById(input.getId());
-            return true;
-        } else {
-            throw new IllegalArgumentException("OrderDetail not found for id: " + input.getId());
+        Long orderDetailId = input.getId();
+
+        if(orderDetailId != null){
+            if (orderDetailRepository.existsById(orderDetailId)) {
+                orderDetailRepository.deleteById(orderDetailId);
+                return true;
+            } else {
+                throw EntityRuntimeException.notFound(OrderDetail.class.getName(), orderDetailId);
+            }
+        }else{
+            throw EntityRuntimeException.entityIdNotNull(OrderDetail.class.getName());
         }
     }
 }

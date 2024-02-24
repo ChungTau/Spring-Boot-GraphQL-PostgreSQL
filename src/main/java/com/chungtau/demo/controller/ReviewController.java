@@ -9,6 +9,7 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 
+import com.chungtau.demo.exception.EntityRuntimeException;
 import com.chungtau.demo.model.product.Product;
 import com.chungtau.demo.model.review.CreateReviewInput;
 import com.chungtau.demo.model.review.DeleteReviewInput;
@@ -32,7 +33,11 @@ public class ReviewController {
 
     @QueryMapping
     public Optional<Review> getReviewById(@Argument Long id) {
-        return reviewRepository.findById(id);
+        if(id != null){
+            return reviewRepository.findById(id);
+        }else{
+            return Optional.empty();
+        }
     }
 
     @QueryMapping
@@ -63,50 +68,71 @@ public class ReviewController {
     }
 
     @MutationMapping
-    public Review addReview(@Argument CreateReviewInput input) {
+    public Review createReview(@Argument CreateReviewInput input) {
         Review review = new Review();
         
         review.setComment(input.getComment());
         review.setRating(input.getRating());
 
-        Optional<User> optionalUser = userRepository.findById(input.getUserId());
-        if (optionalUser.isPresent()) {
-            review.setUser(optionalUser.get());
-        } else {
-            throw new IllegalArgumentException("User not found for id: " + input.getUserId());
+        Long userId = input.getUserId();
+        if(userId != null){
+            Optional<User> optionalUser = userRepository.findById(userId);
+            if (optionalUser.isPresent()) {
+                review.setUser(optionalUser.get());
+            } else {
+                throw EntityRuntimeException.notFound(User.class.getName(), userId);
+            }
+        }else{
+            throw EntityRuntimeException.entityIdNotNull(User.class.getName());
         }
 
-        Optional<Product> optionalProduct = productRepository.findById(input.getProductId());
+        Long productId = input.getProductId();
+        if(productId != null){
+            Optional<Product> optionalProduct = productRepository.findById(productId);
 
-        if (optionalProduct.isPresent()) {
-            review.setProduct(optionalProduct.get());
-            return reviewRepository.save(review);
-        } else {
-            throw new IllegalArgumentException("Product not found for id: " + input.getProductId());
+            if (optionalProduct.isPresent()) {
+                review.setProduct(optionalProduct.get());
+                return reviewRepository.save(review);
+            } else {
+                throw EntityRuntimeException.notFound(Product.class.getName(), productId);
+            }
+        }else{
+            throw EntityRuntimeException.entityIdNotNull(Product.class.getName());
         }
     }
 
     @MutationMapping
     public Review updateReview(@Argument UpdateReviewInput input) {
-        Optional<Review> optionalReview = reviewRepository.findById(input.getId());
-        
-        if (optionalReview.isPresent()) {
-            Review review = optionalReview.get();
-            review.setComment(input.getComment());
-            review.setRating(input.getRating());
-            return reviewRepository.save(review);
-        } else {
-            throw new IllegalArgumentException("Review not found for id: " + input.getId());
+        Long reviewId = input.getId();
+
+        if(reviewId != null){
+            Optional<Review> optionalReview = reviewRepository.findById(reviewId);
+            if (optionalReview.isPresent()) {
+                Review review = optionalReview.get();
+                review.setComment(input.getComment());
+                review.setRating(input.getRating());
+                return reviewRepository.save(review);
+            } else {
+                throw EntityRuntimeException.notFound(Review.class.getName(), reviewId);
+            }
+        }else{
+            throw EntityRuntimeException.entityIdNotNull(Review.class.getName());
         }
+        
     }
 
     @MutationMapping
     public boolean deleteReview(@Argument DeleteReviewInput input) {
-        if (reviewRepository.existsById(input.getId())) {
-            reviewRepository.deleteById(input.getId());
-            return true;
-        } else {
-            throw new IllegalArgumentException("Review not found for id: " + input.getId());
+        Long reviewId = input.getId();
+        if(reviewId != null){
+            if (reviewRepository.existsById(reviewId)) {
+                reviewRepository.deleteById(reviewId);
+                return true;
+            } else {
+                throw EntityRuntimeException.notFound(Review.class.getName(), reviewId);
+            }
+        }else{
+            throw EntityRuntimeException.entityIdNotNull(Review.class.getName());
         }
     }
 

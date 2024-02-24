@@ -2,6 +2,7 @@ package com.chungtau.demo.model.product;
 
 import java.util.List;
 
+import com.chungtau.demo.model.cart.Cart;
 import com.chungtau.demo.model.category.Category;
 import com.chungtau.demo.model.orderDetail.OrderDetail;
 import com.chungtau.demo.model.review.Review;
@@ -12,6 +13,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -48,4 +50,7 @@ public class Product {
 
     @OneToMany(mappedBy = "product")
     private List<OrderDetail> orderDetails;
+
+    @ManyToMany(mappedBy = "products")
+    private List<Cart> carts;
 }
